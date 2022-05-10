@@ -71,7 +71,7 @@ spec:
                   name: app-config
                   key: ELASTIC_APM_APPLICATION_PACKAGES
             - name: ELASTIC_APM_SERVICE_NAME 
-              value: "weather-services-jon" 
+              value: "sba-services-lucas" 
             - name: ELASTIC_APM_ENVIRONMENT 
               value: prod
             - name: ELASTIC_APM_LOG_LEVEL 
