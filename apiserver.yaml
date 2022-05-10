@@ -56,6 +56,8 @@ spec:
           - mountPath: /elastic/apm/agent 
             name: elastic-apm-agent          
           env:
+            - name: spring.datasource.url
+              value: jdbc:postgresql://postgres:5432/smartbankapp
             - name: spring.application.name
               value: sba-services-lucas
             - name: server.port
