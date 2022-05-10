@@ -49,7 +49,7 @@ spec:
           name: elastic-apm-agent 
         command: ['cp', '-v', '/usr/agent/elastic-apm-agent.jar', '/elastic/apm/agent']     
       containers:
-        - image: lxqhim/smart-bank-api-server:v2
+        - image: lxqhim/smart-bank-api-server:v3
           imagePullPolicy: Always
           name: sba-services
           volumeMounts: 
