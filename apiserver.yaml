@@ -1,0 +1,90 @@
+# 2 - sba services
+apiVersion: v1
+kind: Service
+metadata:
+  name: sba-services
+  # namespace: sba
+spec:
+  type: ClusterIP
+  ports:
+    - name: services
+      port: 80
+      targetPort: 8080
+  selector:
+    app: sba
+    tier: services
+---
+# microservices components 2 - api services
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: sba-services
+  name: sba-services
+  # namespace: sba
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sba
+      tier: services
+  template:
+    metadata:
+      labels:
+        app: sba
+        tier: services
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8888"
+        prometheus.io/path: /actuator/prometheus        
+    spec:
+      volumes: 
+      - name: elastic-apm-agent 
+        emptyDir: {}    
+      initContainers: 
+      - name: elastic-java-agent 
+        image: docker.elastic.co/observability/apm-agent-java:1.12.0 
+        volumeMounts: 
+        - mountPath: /elastic/apm/agent 
+          name: elastic-apm-agent 
+        command: ['cp', '-v', '/usr/agent/elastic-apm-agent.jar', '/elastic/apm/agent']     
+      containers:
+        - image: lxqhim/smart-bank-api-server:v2
+          imagePullPolicy: Always
+          name: sba-services
+          volumeMounts: 
+          - mountPath: /elastic/apm/agent 
+            name: elastic-apm-agent          
+          env:
+            - name: spring.application.name
+              value: sba-services-lucas
+            - name: server.port
+              value: "8080"
+            - name: ELASTIC_APM_SERVER_URL 
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ELASTIC_APM_SERVER_URL
+            - name: ELASTIC_APM_APPLICATION_PACKAGES 
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: ELASTIC_APM_APPLICATION_PACKAGES
+            - name: ELASTIC_APM_SERVICE_NAME 
+              value: "weather-services-jon" 
+            - name: ELASTIC_APM_ENVIRONMENT 
+              value: prod
+            - name: ELASTIC_APM_LOG_LEVEL 
+              value: DEBUG 
+            - name: JAVA_TOOL_OPTIONS 
+              value: -javaagent:/elastic/apm/agent/elastic-apm-agent.jar               
+            - name: management.endpoints.web.exposure.include
+              value: "*"
+            - name: management.server.port
+              value: "8888"
+            - name: management.metrics.web.server.request.autotime.enabled
+              value: "true"
+            - name: management.metrics.tags.application
+              value: weather-services-lucas         
+          ports:
+            - containerPort: 8080
